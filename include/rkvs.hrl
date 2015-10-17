@@ -7,11 +7,19 @@
 -record(engine, {name,
                  mod,
                  ref,
+                 key_enc,
+                 val_enc,
                  options}).
 
 -record(fold_options, {start_key=first,
                        end_key=nil,
-                       max=0}).
+                       gt=nil,
+                       gte=nil,
+                       lt=nil,
+                       lte=nil,
+                       max=0,
+                       key_enc,
+                       val_enc}).
 
 -type engine() :: #engine{}.
 -export_type([engine/0]).

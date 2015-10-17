@@ -30,7 +30,7 @@
 	  end)()).
 
 backends() ->
-    [rkvs_ets, rkvs_leveldb].
+    [rkvs_ets, rkvs_leveldb, rkvs_rocksdb, rkvs_hanoidb].
 
 basic_test() ->
     lists:foreach(fun(Backend) ->
@@ -60,6 +60,10 @@ ops_test_funs() ->
         fun should_scan_end/2,
         fun should_scan_max/2,
         fun should_scan_max2/2,
+        fun should_fold_lt/2,
+        fun should_fold_gt/2,
+        fun should_fold_lt_gt/2,
+        fun should_fold_lt_gt_max/2,
         fun should_clear_range/2,
         fun should_write_batch/2,
         fun should_write_delete_batch/2
@@ -81,7 +85,7 @@ basic_ops_test_() ->
        fun(_Backend, Engine) ->
                         ok = rkvs:close(Engine),
                         ok = rkvs:destroy(Engine)
-                end,
+       end,
        [{Backend, fun(_, Engine) ->
                                 [?_test(?dbg(Backend, Fun(Backend, Engine)))]
                         end} || {Backend, Fun} <- RunTests]
@@ -91,7 +95,7 @@ should_create_kv(_Backend, Engine) ->
     ?_assertMatch(ok, rkvs:put(Engine, <<"a">>, 1)).
 
 should_get_kv(_Backend, Engine) ->
-    ok =  rkvs:put(Engine, <<"a">>, 1),
+    ok = rkvs:put(Engine, <<"a">>, 1),
     ?_assertMatch(1, rkvs:get(Engine, <<"a">>)).
 
 should_contains_kv(_Backend, Engine) ->
@@ -162,6 +166,64 @@ should_scan_max2(_Backend, Engine) ->
     ?_assertMatch([{<<"b">>, 2}],
                   rkvs:scan(Engine, <<"b">>, <<"c">>, 1)).
 
+
+should_fold_lt(_Backend, Engine) ->
+    ok =  rkvs:put(Engine, <<"a">>, 1),
+    ok =  rkvs:put(Engine, <<"b">>, 2),
+    ok =  rkvs:put(Engine, <<"c">>, 3),
+    ok =  rkvs:put(Engine, <<"d">>, 4),
+
+    AccFun = fun({K, V}, Acc) ->
+            [{K, V} | Acc]
+    end,
+
+    ?_assertMatch([{<<"b">>, 2}, {<<"c">>, 3}, {<<"d">>, 4}],
+                  lists:reverse(rkvs:fold(Engine, AccFun, [],
+                                          [{gt, <<"a">>}]))).
+
+
+should_fold_gt(_Backend, Engine) ->
+    ok =  rkvs:put(Engine, <<"a">>, 1),
+    ok =  rkvs:put(Engine, <<"b">>, 2),
+    ok =  rkvs:put(Engine, <<"c">>, 3),
+    ok =  rkvs:put(Engine, <<"d">>, 4),
+
+    AccFun = fun({K, V}, Acc) ->
+            [{K, V} | Acc]
+    end,
+
+    ?_assertMatch([{<<"a">>, 1}, {<<"b">>, 2}, {<<"c">>, 3}],
+                  lists:reverse(rkvs:fold(Engine, AccFun, [],
+                                          [{lt, <<"d">>}]))).
+
+should_fold_lt_gt(_Backend, Engine) ->
+    ok =  rkvs:put(Engine, <<"a">>, 1),
+    ok =  rkvs:put(Engine, <<"b">>, 2),
+    ok =  rkvs:put(Engine, <<"c">>, 3),
+    ok =  rkvs:put(Engine, <<"d">>, 4),
+
+    AccFun = fun({K, V}, Acc) ->
+            [{K, V} | Acc]
+    end,
+
+    ?_assertMatch([{<<"b">>, 2}, {<<"c">>, 3}],
+                  lists:reverse(rkvs:fold(Engine, AccFun, [], [{gt, <<"a">>},
+                                                               {lt, <<"d">>}]))).
+
+should_fold_lt_gt_max(_Backend, Engine) ->
+    ok =  rkvs:put(Engine, <<"a">>, 1),
+    ok =  rkvs:put(Engine, <<"b">>, 2),
+    ok =  rkvs:put(Engine, <<"c">>, 3),
+    ok =  rkvs:put(Engine, <<"d">>, 4),
+
+    AccFun = fun({K, V}, Acc) ->
+            [{K, V} | Acc]
+    end,
+
+    ?_assertMatch([{<<"b">>, 2}],
+                  rkvs:fold(Engine, AccFun, [], [{gt, <<"a">>},
+                                                 {lt, <<"d">>},
+                                                 {max, 1}])).
 
 should_clear_range(_Backend, Engine) ->
     ok =  rkvs:put(Engine, <<"a">>, 1),

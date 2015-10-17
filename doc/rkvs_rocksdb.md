@@ -1,12 +1,12 @@
 
 
-# Module rkvs_leveldb #
+# Module rkvs_rocksdb #
 * [Description](#description)
 * [Function Index](#index)
 * [Function Details](#functions)
 
 
-eleveldb backendi.
+erocksdb backend.
 __Behaviours:__ [`rkvs_storage_backend`](rkvs_storage_backend.md).
 <a name="description"></a>
 
@@ -15,7 +15,7 @@ __Behaviours:__ [`rkvs_storage_backend`](rkvs_storage_backend.md).
 
 
 You can pass any options from
-[eleveldb](https://github.com/basho/eleveldb/blob/develop/src/eleveldb.erl)
+[erocksdb](https://github.com/leo-project/erocksdb)
 when opening the database using the db_opts settings.
 
 
