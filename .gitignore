@@ -1,15 +1,6 @@
-ebin
-*.swp
-*.dump
-edoc-info
 .DS_Store
-deps/
-.eunit
-.rebar
+_build/
 test/temp
-log
-.eunit
-.rebar
 test/sst*
 test/LOG*
 test/MANIFEST*

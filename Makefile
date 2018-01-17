@@ -3,8 +3,7 @@ SUPPORT_DIR=$(BASE_DIR)/support
 ERLC ?= $(shell which erlc)
 ESCRIPT ?= $(shell which escript)
 ERL ?= $(shell which erl)
-APP := enkidb
-REBAR?= rebar
+REBAR?= rebar3
 
 $(if $(ERLC),,$(warning "Warning: No Erlang found in your path, this will probably not work"))
 
@@ -21,16 +20,13 @@ deps:
 	@$(REBAR) get-deps
 
 doc: dev
-	$(REBAR) -C rebar_dev.config doc skip_deps=true
+	$(REBAR) doc skip_deps=true
 
 test: dev
-	$(REBAR) -C rebar_dev.config eunit skip_deps=true
+	$(REBAR) eunit skip_deps=true
 
-dev: dev-deps
-	$(REBAR) -C rebar_dev.config compile
-
-dev-deps:
-	$(REBAR) -C rebar_dev.config get-deps
+dev:
+	$(REBAR) compile
 
 clean:
 	@$(REBAR) clean
